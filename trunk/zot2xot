@@ -1,0 +1,197 @@
+#!/usr/bin/perl -w
+# -*- cperl -*-
+# Copyright 2003 Fundacion Via Libre
+#
+# This file is part of PAPO.
+# 
+# PAPO is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# PAPO is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with PAPO; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+use strict;
+use lib "$ENV{HOME}/public_perl/";
+use Zot;
+
+my $zotfile = shift;
+
+die "Usage: $0 ER.zot"
+  unless $zotfile;
+
+my $zot = Zot->new($zotfile)->parse;
+
+
+print <<EOF;
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE database SYSTEM "xot.dtd">
+<database>
+  <tables>
+EOF
+foreach my $table ($zot->tables)
+{
+    my $name = $table->name;
+    print  "    <table name=\"$name\"";
+    printf " inherits=\"%s\"", $table->parent
+        if $table->parent;
+    printf ">\n";
+    printf "      <fields>\n";
+    foreach ($table->attrs)
+    {
+        my $attr = $_;
+        my $type = $table->attr($attr);
+        my $comment = $table->comment($attr);
+        $comment =~ s/^\s*(.*?)\s*$/$1/s;
+        $attr =~ s/^_/${name}_/;
+        $type =~ s/serial$/int" auto_increment="true/;
+        $type .= '" null="false'
+            if $attr eq 'id';
+        printf "        <field name=\"%s\" type=\"%s\">\n", $attr, $type;
+        printf "          <doc><![CDATA[%s]]></doc>\n", $comment
+            if defined($comment) and $comment !~ /^\s*$/;
+        printf "        </field>\n";
+    }
+    foreach ($table->rels)
+    {
+        my $rel = $_;
+        my $comment = $table->comment($rel);
+        $comment =~ s/^\s*(.*?)\s*$/$1/s;
+        $rel =~ s/^_/${name}_/;
+        printf "        <field name=\"%s\" references=\"%s\">\n", $rel, $table->rel($_);
+        printf "          <doc><![CDATA[%s]]></doc>\n", $comment
+            if defined($comment) and $comment !~ /^\s*$/;
+        printf "        </field>\n";
+    }
+    print("      </fields>\n",
+          "      <indexes>\n",
+          "        <index type=\"primary_key\">\n",
+          "          <index_field name=\"id\"/>\n",
+          "        </index>\n");
+
+    print("        <index name=\"${name}_${_}_idx\">\n",
+          "          <index_field name=\"$_\"/>\n",
+          "        </index>\n")
+        foreach ($table->rels);
+    print("      </indexes>\n");
+    if ($table->styles)
+    {
+        printf "      <hooks>\n";
+        printf "        <hook name=\"%s\"/>\n", $_
+            foreach ($table->styles);
+        printf "      </hooks>\n";
+    }
+    my $comment = $table->comment('__main__');
+    $comment =~ s/^\s*(.*?)\s*$/$1/s;
+    printf "      <doc><![CDATA[%s]]></doc>\n", $comment
+        if defined($comment) and $comment !~ /^\s*$/;
+    print  "    </table>\n";
+}
+print "  </tables>\n";
+if ($zot->styles)
+{
+    print "  <hook_defs>\n";
+    foreach ($zot->styles)
+    {
+        print "    <hook_def name=\"$_\">\n";
+        printf("      <hook_impl target=\"dot\"><![CDATA[%s]]></hook_impl>\n",
+               $zot->style($_));
+        printf("      <hook_impl target=\"xml\"><![CDATA[%s]]></hook_impl>\n",
+               sql_style($_));
+        print "    </hook_def>\n";
+    }
+    print "  </hook_defs>\n";
+}
+print "</database>\n";
+
+
+sub sql_style
+{
+    my $name = shift;
+    my $style = '';
+    if ($name eq 'history')
+    {
+        $style = <<'EOF';
+
+addChunk=lambda node, chunk: node.addChild(libxml2.parseDoc(chunk).children)
+
+self = self.xpathEval('table')[0]
+name = self.prop('name')
+fields = self.xpathEval('fields')[0]
+id = fields.xpathEval('field[@name="id"]')[0]
+type = id.prop('type')
+
+addChunk(fields, '<field name="%s" references="%s"/>' % ('_table', name))
+addChunk(fields, '<field name="_start_t" type="timestamp"/>')
+addChunk(fields, '<field name="_end_t" type="timestamp"/>')
+self.setProp('name', "_%s_data" % name)
+id.setProp('type', 'bigint')
+
+addChunk(self.parent, '''
+<table name="%s">
+  <fields>
+    <field auto_increment="true" null="false" name="id" type="%s"/>
+  </fields>
+  <indexes>
+    <index type="primary_key">
+      <index_field name="id"/>
+    </index>
+  </indexes>
+</table>''' % (name, type))
+   ]]></hook_impl>
+      <hook_impl lang="python" target="ref"><![CDATA[
+
+import re
+is_data = re.compile('_\w+_data$')
+
+tg = self.table.group.xot.table_groups[self.symbolic].tables
+assert len(tg) == 2, "I don't know what to do with this group"
+id=None
+data=None
+for i in tg:
+    if is_data.match(i):
+        data = tg[i]
+    else:
+        id = tg[i]
+assert id and data, "A strange group indeed"
+if self.table.fields.has_key('_table'):
+    # transactional table referencing transactional table
+    RV=id
+else:
+    # other case
+    RV=data
+EOF
+    }
+    elsif ($name eq 'account')
+    {
+        $style = <<'EOF';
+
+addChunk=lambda node, chunk: node.addChild(libxml2.parseDoc(chunk).children)
+
+fields = self.xpathEval('descendant::fields')[0]
+addChunk(fields, '<field name="account_plan" references="account_plan"/>')
+
+EOF
+    }
+    else
+    {
+        $style = <<'EOF';
+
+addChunk=lambda node, chunk: node.addChild(libxml2.parseDoc(chunk).children)
+
+fields = self.xpathEval('descendant::fields')[0]
+addChunk(fields, '<field name="entry" references="entry"/>')
+
+
+EOF
+    }
+
+    return $style;
+}

@@ -1,0 +1,119 @@
+<!--
+Copyright 2003 Fundacion Via Libre
+
+This file is part of PAPO.
+
+PAPO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+PAPO is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with PAPO; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-->
+
+<!-- ============================================================= -->
+<!--                    database schema DTD for xot                -->
+<!-- ============================================================= -->
+
+
+<!ELEMENT  database     (tables,hook_defs?)                          >
+
+<!ELEMENT  tables       (table)+                                     >
+
+<!ELEMENT  table        (fields,constraints?,indexes?,hooks?,doc?)   >
+<!ATTLIST  table
+             name       NMTOKEN                            #REQUIRED
+	     is_abstract
+	                (true|false)                       "false"
+	     is_read_only
+	                (true|false)                       "false"
+	     class_name NMTOKEN                            #IMPLIED
+	     module_name
+	                NMTOKEN                            #IMPLIED
+	     external_name
+	                NMTOKEN                            #IMPLIED
+             inherits   NMTOKEN                            #IMPLIED  >
+
+<!ELEMENT  fields       (field+)                                     >
+<!ELEMENT  field        (doc?)                                       >
+<!ATTLIST  field
+             name       NMTOKEN                            #REQUIRED
+             references NMTOKEN                            #IMPLIED
+	     inverse    NMTOKEN				   #IMPLIED
+             type       CDATA                              #IMPLIED
+             default    CDATA                              #IMPLIED
+             auto_increment
+                        (true|false)                       "false"
+             display_label
+                        CDATA                              #IMPLIED
+             is_class_property
+                        (true|false)                       "false"
+	     external_type
+	                NMTOKEN                            #IMPLIED
+             delete_rule
+                        (nullify|delete_deny|delete_cascade|delete_noaction)
+                                                           "nullify"
+             join_semantic
+                        (full|outer|left|right)            "full"
+             null       (true|false)                       "true"    >
+
+<!ELEMENT  doc          (#PCDATA)                                    >
+
+
+<!ELEMENT  hooks        (hook+)                                      >
+<!ELEMENT  hook         EMPTY                                        >
+<!ATTLIST  hook
+             name       NMTOKEN                            #REQUIRED >
+
+<!ELEMENT  constraints  (constraint+)                                >
+<!ELEMENT  constraint   (constraint_field+)                          >
+<!ATTLIST  constraint
+             expression CDATA                              #IMPLIED
+             name       NMTOKEN                            #IMPLIED  >
+
+<!ELEMENT  constraint_field
+                        EMPTY                                        >
+<!ATTLIST  constraint_field
+             name       NMTOKEN                            #REQUIRED >
+
+
+<!ELEMENT  indexes      (index+)                                     >
+<!ELEMENT  index        (index_field+|index_function)                >
+<!ATTLIST  index
+             type       (plain|unique|fulltext|primary_key)
+                                                           "plain"
+             name       NMTOKEN                            #IMPLIED
+             method     CDATA                              #IMPLIED
+             where      CDATA                              #IMPLIED  >
+
+<!ELEMENT  index_function
+                        EMPTY                                        >
+<!ATTLIST  index_function
+             name       NMTOKEN                            #IMPLIED
+             expression CDATA                              #REQUIRED >
+
+
+<!ELEMENT  index_field  EMPTY                                        >
+<!ATTLIST  index_field
+             name       NMTOKEN                            #REQUIRED >
+
+
+<!ELEMENT  hook_defs
+                        (hook_def+)                                  >
+<!ELEMENT  hook_def
+                        (hook_impl+)                                 >
+<!ATTLIST  hook_def
+             name       NMTOKEN                            #REQUIRED >
+
+<!ELEMENT  hook_impl
+                        (#PCDATA)                                    >
+<!ATTLIST  hook_impl
+             lang       (perl|python)                      "perl"
+             target     (xml|xot|dot|sql|ref|key)          #REQUIRED >

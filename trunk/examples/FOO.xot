@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!--
+Copyright 2003 Fundacion Via Libre
+
+This file is part of PAPO.
+
+PAPO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+PAPO is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with PAPO; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-->
+
+<!DOCTYPE database SYSTEM "xot.dtd">
+<database>
+  <tables>
+    <table name="Foo">
+      <fields>
+        <field name="id" type="fooint" auto_increment="true" null="false"/>
+        <field name="foo" type="text"/>
+      </fields>
+      <indexes>
+        <index type="primary_key">
+          <index_field name="id"/>
+        </index>
+      </indexes>
+      <hooks>
+        <hook name="history"/>
+      </hooks>
+    </table>
+    <table name="Bar">
+      <fields>
+        <field name="id" type="barint" auto_increment="true" null="false"/>
+        <field name="bar" type="text"/>
+      </fields>
+      <indexes>
+        <index type="primary_key">
+          <index_field name="id"/>
+        </index>
+      </indexes>
+    </table>
+    <table name="Foobar">
+      <fields>
+        <field name="id" type="fubarint" auto_increment="true" null="false"/>
+        <field name="foo" references="Foo"/>
+        <field name="bar" references="Bar"/>
+        <field name="fubar" type="text"/>
+      </fields>
+      <indexes>
+        <index type="primary_key">
+          <index_field name="id"/>
+        </index>
+        <index type="unique">
+          <index_field name="fubar"/>
+        </index>
+      </indexes>
+    </table>
+    <table name="SpecialFoobar" inherits="Foobar">
+      <fields>
+        <field name="id" type="int" auto_increment="true" null="false"/>
+        <field name="foobar" references="Foobar"/>
+        <field name="special" type="text"/>
+      </fields>
+      <indexes>
+        <index type="primary_key">
+          <index_field name="id"/>
+        </index>
+      </indexes>
+    </table>
+  </tables>
+  <hook_defs>
+    <hook_def name="history">
+      <hook_impl target="dot"><![CDATA[peripheries=2]]></hook_impl>
+      <hook_impl lang="python" target="xml"><![CDATA[
+addChunk=lambda node, chunk: node.addChild(libxml2.parseDoc(chunk).children)
+
+self = self.xpathEval('table')[0]
+name = self.prop('name')
+fields = self.xpathEval('fields')[0]
+id = fields.xpathEval('field[@name="id"]')[0]
+type = id.prop('type')
+
+addChunk(fields, '<field name="%s" references="%s"/>' % ('_table', name))
+addChunk(fields, '<field name="_start_t" type="timestamp"/>')
+addChunk(fields, '<field name="_end_t" type="timestamp"/>')
+self.setProp('name', "_%s_data" % name)
+id.setProp('type', 'bigint')
+
+addChunk(self.parent, '''
+<table name="%s">
+  <fields>
+    <field auto_increment="true" null="false" name="id" type="%s"/>
+  </fields>
+  <indexes>
+    <index type="primary_key">
+      <index_field name="id"/>
+    </index>
+  </indexes>
+</table>''' % (name, type))
+   ]]></hook_impl>
+      <hook_impl lang="python" target="ref"><![CDATA[
+
+import re
+is_data = re.compile('_\w+_data$')
+
+tg = self.table.group.xot.table_groups[self.symbolic].tables
+assert len(tg) == 2, "I don't know what to do with this group"
+id=None
+data=None
+for i in tg:
+    if is_data.match(i):
+        data = tg[i]
+    else:
+        id = tg[i]
+assert id and data, "A strange group indeed"
+if self.table.fields.has_key('_table'):
+    # transactional table referencing transactional table
+    RV=id
+else:
+    # other case
+    RV=data
+
+   ]]></hook_impl>
+    </hook_def>
+  </hook_defs>
+</database>
