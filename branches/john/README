@@ -1,0 +1,15 @@
+This is xot, a database description framework.
+
+That is, its main purpose is to allow developers to describe databases in a
+a common language (in xot language) and then generate usefull things from it,
+like sql scripts for database creation, database documentation or some graphs.
+
+The xot language is simply xml. You can see the xot.dtd to learn about it.
+
+There's a couple of examples in the `example' directory.
+
+To install, just edit the Makefile, adjust the PREFIX at will and `make
+install'.
+
+There's not much documentation right now. Try `exotic --help'. Any doubts,
+please email to papo-hackers@nongnu.org
