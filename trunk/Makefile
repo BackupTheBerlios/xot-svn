@@ -27,6 +27,7 @@ DATA=xot.dtd
 
 pwd=$(shell pwd)
 python=python$(PYTHONVER)
+dir=xot
 
 all:
 	$(python) /usr/lib/$(python)/compileall.py .
@@ -45,3 +46,17 @@ install:
 clean:
 	rm -f *.pyc *.pyo
 	$(foreach dir,$(SUBDIRS),make -C $(dir) clean)
+
+country:
+	@./exotic -n -eCimarronXMLui -Oclass:country,import:model.country.Country examples/country.xot
+
+state:
+	@./exotic -n -eCimarronXMLui -Oclass:state,import:model.country.Country+model.country.State examples/country.xot
+
+person:
+#	@./exotic -n -eCimarronXMLui -Oclass:person,\
+		find:name+surname,\
+		import:model.person.Person+model.person.Address,\
+		more:addreses \
+		examples/person.xot
+	@./exotic -n -eCimarronXMLui -Oxin:examples/person.xin examples/person.xot

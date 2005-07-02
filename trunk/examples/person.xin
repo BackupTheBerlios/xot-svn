@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<class name="person">
+    <import what="model.person.Person"/>
+    <import what="model.person.Address"/>
+
+    <finder attribute="name"/>
+    <finder attribute="surname"/>
+
+    <class name="address" multiplicity="many" attribute="addresses">
+        <finder attribute="value"/>
+    </class>
+</class>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!-- -*- xml -*- -->
+
+<!--
+Copyright 2004 Fundacion Via Libre
+
+This file is part of PAPO.
+
+PAPO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+PAPO is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with PAPO; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-->
+
+<!DOCTYPE database SYSTEM "xot.dtd">
+<database>
+  <tables>
+
+    <table name="person">
+      <fields>
+        <field name="id" type="int" auto_increment="true" null="false">
+        </field>
+        <field name="is_active" type="boolean">
+          <doc><![CDATA[does this entity exist any more?]]></doc>
+        </field>
+        <field name="name" type="varchar(255)" null="false">
+          <doc><![CDATA[The name of the entity.]]></doc>
+        </field>
+        <field name="surname" type="varchar(255)" null="false">
+          <doc><![CDATA[The surname of the entity.]]></doc>
+        </field>
+        <field name="observations" type="text" null="true">
+          <doc><![CDATA[blow your mind]]></doc>
+        </field>
+        <field name="start_time" type="timestamp" null="false">
+          <doc><![CDATA[when we first came to know this entity]]></doc>
+        </field>
+      </fields>
+      <indexes>
+        <index type="primary_key">
+          <index_field name="id"/>
+        </index>
+      </indexes>
+      <doc><![CDATA[Persona
+
+ This is the unique representation of all objects we are or relate to. If it's got a
+ name and an address (and a couple of other things). Later it can be
+ viewed as different Roles]]></doc>
+    </table>
+
+    <table name="address">
+      <fields>
+        <field name="id" type="int" auto_increment="true" null="false"/>
+	<field name="person" references="person"
+               inverse="addresses"/>
+	<!-- inverse seems useless-->
+	<field name="value" type="char(255)"/>
+      </fields>
+      <indexes>
+	<index type="primary_key">
+	  <index_field name="id"/>
+	</index>
+      </indexes>
+    </table>
+
+  </tables>
+</database>

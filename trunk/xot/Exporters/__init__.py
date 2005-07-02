@@ -21,5 +21,6 @@ desc = {'Pg': 'produces SQL statements to create the database on postgres (>=7.2
         'GV': 'produces output in GraphViz\'s dot format',
         'Zot': 'produces output suitable for zot',
         'Mod': 'produces a python script for Modeling',
+        'CimarronXMLui': 'produces a Cimarron xml definition.',
        }
 __all__ = desc.keys()
