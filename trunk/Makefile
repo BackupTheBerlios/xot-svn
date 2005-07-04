@@ -51,7 +51,8 @@ country:
 	@./exotic -n -eCimarronXMLui -Oclass:country,import:model.country.Country examples/country.xot
 
 state:
-	@./exotic -n -eCimarronXMLui -Oclass:state,import:model.country.Country+model.country.State examples/country.xot
+#	@./exotic -n -eCimarronXMLui -Oclass:state,import:model.country.Country+model.country.State examples/country.xot
+	@./exotic -n -eCimarronXMLui -Oxin:examples/state.xin examples/country.xot
 
 person:
 #	@./exotic -n -eCimarronXMLui -Oclass:person,\

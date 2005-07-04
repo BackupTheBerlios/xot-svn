@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?><!-- -*- nxml -*- -->
+
+<!--
+Copyright 2005 Fundacion Via Libre
+
+This file is part of PAPO.
+
+PAPO is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+PAPO is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with PAPO; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+-->
+<!DOCTYPE database SYSTEM "../xot.dtd">
+<database>
+  <tables>
+    <table name="country">
+      <fields>
+        <field name="iso2" type="char(2)">
+          <doc><![CDATA[ISO-3316-1 alpha-2 code]]></doc>
+        </field>
+        <field name="iso3" type="char(3)">
+          <doc><![CDATA[ISO-3316-1 alpha-3 code]]></doc>
+        </field>
+        <field name="id" type="int" auto_increment="true" null="false">
+        </field>
+        <field name="phone" type="integer">
+          <doc><![CDATA[ITU code]]></doc>
+        </field>
+        <field name="un" type="integer">
+          <doc><![CDATA[UN code for the country]]></doc>
+        </field>
+        <field name="name" type="varchar(80)">
+          <doc><![CDATA[canonical name of the country (ISO name?)]]></doc>
+        </field>
+      </fields>
+      <indexes>
+        <index type="primary_key">
+          <index_field name="id"/>
+        </index>
+        <index type="unique">
+          <index_field name="iso2"/>
+        </index>
+        <index type="unique">
+          <index_field name="iso3"/>
+        </index>
+        <index type="unique">
+          <index_field name="un"/>
+        </index>
+      </indexes>
+      <doc><![CDATA[Country
+
+ list of countries]]></doc>
+    </table>
+
+
+    <table name="state">
+      <fields>
+        <field name="id" type="int" auto_increment="true" null="false">
+        </field>
+        <field name="name" type="varchar(80)">
+          <doc><![CDATA[canonical name of the state]]></doc>
+        </field>
+        <field name="country" references="country"/>
+      </fields>
+      <indexes>
+        <index type="primary_key">
+          <index_field name="id"/>
+        </index>
+      </indexes>
+      <doc><![CDATA[State
+
+ list of states]]></doc>
+    </table>
+
+
+    <table name="city">
+      <fields>
+        <field name="id" type="int" auto_increment="true" null="false">
+        </field>
+        <field name="name" type="varchar(80)">
+          <doc><![CDATA[canonical name of the city]]></doc>
+        </field>
+        <field name="state" references="state"/>
+      </fields>
+      <indexes>
+        <index type="primary_key">
+          <index_field name="id"/>
+        </index>
+      </indexes>
+      <doc><![CDATA[City
+
+ list of cities]]></doc>
+    </table>
+  </tables>
+</database>

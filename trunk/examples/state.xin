@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<class name="state">
+    <import what="model.country.Country"/>
+    <import what="model.country.State"/>
+
+    <finder attribute="name"/>
+
+    <attribute name="country">
+        <finder attribute="name"/>
+    </attribute>
+</class>

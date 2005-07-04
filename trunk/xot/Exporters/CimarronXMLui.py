@@ -69,6 +69,7 @@ class exporter(object):
         kind_name= xmlObj.prop ('name')
         KindName= MakeFieldName (kind_name)
         kind = self.xot.tables[kind_name]
+        kind.searchers= {}
         title= getProp (xmlObj, 'title', kind_name)
 
         imports= []
@@ -85,7 +86,8 @@ class exporter(object):
             #             for s in [i.split('.')
             #                       for i in opts.get('import', '').split('+') ]]
             if child.name=='import':
-                imports.append ((lambda s: ('.'.join(s[:-1]), s[-1])) (child.prop ('what').split ('.')))
+                imports.append ((lambda s: ('.'.join(s[:-1]), s[-1]))
+                                (child.prop ('what').split ('.')))
         
             # finders= opts.get('find', 'name').split ('+')
             elif child.name=='finder':
@@ -94,6 +96,17 @@ class exporter(object):
             elif child.name=='class':
                 # check for `class has that attr`?
                 others.append (child)
+
+            elif child.name=='attribute':
+                # gotta do this pass for the children classes too
+                kind.searchers[child.prop ('name')]= []
+                column= child.children
+                while column:
+                    if column.name=='finder':
+                        kind.searchers[child.prop ('name')].append \
+                                                  (column.prop ('attribute'))
+
+                    column= column.next
 
             child= child.next
 
@@ -167,7 +180,8 @@ class exporter(object):
                 # warning: this part does not work
                 SearchFieldName= MakeFieldName (search_field_name)
                 entry= libxml2.newNode ('SearchEntry')
-                for i in opts.get('search.'+search_field_name, 'name').split ('+'):
+                # for i in opts.get('search.'+search_field_name, 'name').split ('+'):
+                for i in kind.searchers[search_field_name]:
                     column= entry.newChild (None, 'Column', None)
                     column.setProp ('name', i)
                     column.setProp ('read', SearchFieldName+'.get'+MakeFieldName (i))
