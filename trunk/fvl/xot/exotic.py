@@ -20,7 +20,7 @@
 """ foo
 """
 import sys, getopt, os, stat, cPickle, os.path
-from xot import Exporters
+from fvl.xot import Exporters
 #import Xot  <--  moved down for performance reasons
 
 DefaultExporter = 'Pg'
