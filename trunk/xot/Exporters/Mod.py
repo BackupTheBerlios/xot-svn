@@ -210,7 +210,7 @@ model.version='0.1'
                 elif numeric:
                     size, prec= numeric.group (1, 2)
                     type= "AFloat"
-                    contents+= ["width=%d" % int (size), "precision=%d" % int(prec)]
+                    contents+= ["scale=%d" % int (size), "precision=%d" % int(prec)]
                 else:
                     raise NotImplementedError
                 if field.default:
