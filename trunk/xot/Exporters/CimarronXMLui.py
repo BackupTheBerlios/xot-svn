@@ -65,7 +65,6 @@ class exporter(object):
         if xmlObj.name!='class':
             raise ValueError, "root element shoud be 'class', not %s" % xmlObj.name
         
-        # title = opts.get('title', kind_name)
         kind_name= xmlObj.prop ('name')
         KindName= MakeFieldName (kind_name)
         kind = self.xot.tables[kind_name]
@@ -78,18 +77,10 @@ class exporter(object):
         
         child= xmlObj.children
         while child is not None:
-            # man, do I miss haskell :)
-            # don't be scared
-            # converts 'model.country.State+model.country.Country'
-            # to [('model.country', 'State'), ('model.country', 'Country')]
-            # imports = [ ('.'.join(s[:-1]), s[-1])
-            #             for s in [i.split('.')
-            #                       for i in opts.get('import', '').split('+') ]]
             if child.name=='import':
                 imports.append ((lambda s: ('.'.join(s[:-1]), s[-1]))
                                 (child.prop ('what').split ('.')))
         
-            # finders= opts.get('find', 'name').split ('+')
             elif child.name=='finder':
                 finders.append (child.prop ('attribute'))
 
@@ -110,13 +101,12 @@ class exporter(object):
 
             child= child.next
 
-        # tabs_tables = [kind] + [i for i in kind.details]
         xml= libxml2.newDoc("1.0")
 
         # window
         crud= xml.newDocNode (None, 'CrUDController', None)
         crud.setProp ('title', title)
-        crud.setProp ('klass', KindName)
+        crud.setProp ('cls', KindName)
         crud.setProp ('id', 'Crud')
         xml.setRootElement (crud)
 
@@ -133,8 +123,9 @@ class exporter(object):
         search.setProp ('searcher', KindName)
         for i in finders:
             column= search.newChild (None, 'Column', None)
-            column.setProp ('name', i)
-            column.setProp ('read', KindName+'.get'+MakeFieldName (i))
+            column.setProp ('name', MakeFieldName(i))
+            # column.setProp ('read', KindName+'.get'+MakeFieldName (i))
+            column.setProp('attribute', makeFieldName(i))
 
         # tabs
         for other in others:
@@ -159,12 +150,11 @@ class exporter(object):
             editor.setProp ('label', KindName)
             # the fields will be Columns
             editor= editor.newChild (None, 'Grid', None)
-            editor.setProp ('klass', KindName)
+            editor.setProp ('cls', KindName)
 
         for field_name in kind.fields:
             if field_name=='id':
                 continue
-            # label= editor.newChild (None, 'Label', None)
             # fuck the way to do these things
             # this module is too literal
             label= libxml2.newNode ('Label')
@@ -180,7 +170,6 @@ class exporter(object):
                 # warning: this part does not work
                 SearchFieldName= MakeFieldName (search_field_name)
                 entry= libxml2.newNode ('SearchEntry')
-                # for i in opts.get('search.'+search_field_name, 'name').split ('+'):
                 for i in kind.searchers[search_field_name]:
                     column= entry.newChild (None, 'Column', None)
                     column.setProp ('name', i)

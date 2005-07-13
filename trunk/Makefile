@@ -34,11 +34,22 @@ all:
 
 install:
 	mkdir -pv $(BINDIR)
-	ln -sf $(pwd)/exotic $(BINDIR)
+	cp -vf $(pwd)/exotic $(BINDIR)
 	mkdir -pv $(LIBDIR)
-	ln -sf $(pwd)/$(dir) $(LIBDIR)
+	cp -vf $(pwd)/$(dir) $(LIBDIR)
 	mkdir -pv $(SHAREDIR)
-	ln -sf $(pwd)/xot.dtd $(SHAREDIR)
+	cp -vf $(pwd)/xot.dtd $(SHAREDIR)
+	@echo "***** INSTALLED *****"
+	@echo "make sure $(BINDIR) is in your path"
+	@echo "and $(LIBDIR) is in you python path"
+
+devel-install:
+	mkdir -pv $(BINDIR)
+	ln -sfv $(pwd)/exotic $(BINDIR)
+	mkdir -pv $(LIBDIR)
+	ln -sfv $(pwd)/$(dir) $(LIBDIR)
+	mkdir -pv $(SHAREDIR)
+	ln -sfv $(pwd)/xot.dtd $(SHAREDIR)
 	@echo "***** INSTALLED *****"
 	@echo "make sure $(BINDIR) is in your path"
 	@echo "and $(LIBDIR) is in you python path"
@@ -47,17 +58,11 @@ clean:
 	rm -f *.pyc *.pyo
 	$(foreach dir,$(SUBDIRS),make -C $(dir) clean)
 
-country:
-	@./exotic -n -eCimarronXMLui -Oclass:country,import:model.country.Country examples/country.xot
+# country:
+# 	@./exotic -n -eCimarronXMLui -Oclass:country,import:model.country.Country examples/country.xot
 
 state:
-#	@./exotic -n -eCimarronXMLui -Oclass:state,import:model.country.Country+model.country.State examples/country.xot
 	@./exotic -n -eCimarronXMLui -Oxin:examples/state.xin examples/country.xot
 
 person:
-#	@./exotic -n -eCimarronXMLui -Oclass:person,\
-		find:name+surname,\
-		import:model.person.Person+model.person.Address,\
-		more:addreses \
-		examples/person.xot
 	@./exotic -n -eCimarronXMLui -Oxin:examples/person.xin examples/person.xot
