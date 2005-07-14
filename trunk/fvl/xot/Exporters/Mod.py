@@ -188,7 +188,7 @@ model.version='0.1'
                 elif type=='timestamp' or type=='date':
                     type= "ADateTime"
                 elif numeric:
-                    size, prec= numeric.group (1, 2)
+                    prec, size= numeric.group (1, 2)
                     type= "AFloat"
                     contents+= ["scale=%d" % int (size), "precision=%d" % int(prec)]
                 else:
