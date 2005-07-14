@@ -31,8 +31,11 @@ Exporter for Modeling input. Options are:
 
 noHierarchy: Entities don't honour the 'inherits' attribute.
              This will be needed when exporting the old database scheme.
-database:    The name of the database. This will be used to name the database
-             in the database engine and also the model name.
+database:    The name of the database. This will be used to name the
+             database in the database engine and also the model name,
+             unless modelName is given.
+modelName:   The name of the model.
+             The default is the name of the database.
 host:        The name of the host where the database engine runs.
              The default is 'localhost'.
 user:        The user name that will be used to connect to the database engine.
@@ -92,38 +95,15 @@ model.version='0.1'
         return name
 
     def export (self, xot, **opts):
-        try:
-            withoutHierarchy= opts['noHierarchy']
-        except KeyError:
-            # default value
-            withoutHierarchy= False
-        try:
-            database= opts['database']
-        except KeyError:
-            # better error handling
-            raise
-        try:
-            host= opts['host']
-        except KeyError:
-            # default value
-            host= 'localhost'
-        try:
-            user= opts['user']
-        except KeyError:
-            # default value
-            user= 'papo'
-        try:
-            passwd= opts['password']
-        except KeyError:
-            # default value
-            passwd= ''
-        try:
-            adaptor= opts['adaptorName']
-        except KeyError:
-            # better error handling
-            raise
+        database = opts['database']
+        adaptor = opts['adaptorName']
+        model = opts.get('modelName', self.__tableName__(database))
+        host = opts.get('host', 'localhost')
+        user = opts.get('user', 'papo')
+        passwd = opts.get('password', '')
+        withoutHierarchy = opts.get('noHierarchy', False)
 
-        code= self.header % (xot.filename, database, host, user, passwd, self.__tableName__ (database), adaptor)
+        code= self.header % (xot.filename, database, host, user, passwd, model, adaptor)
         self.extendTables (xot.tables)
         code+= "model.entities= [\n"+"\n".join (map (lambda t: self.table (t, withoutHierarchy), xot.tables.values ()))+"]\n"
         # code+= "model.associations= [\n"+"\n".join (map (self.assoc, xot.tables.values ()))+"]\n"

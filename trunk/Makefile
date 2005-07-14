@@ -26,7 +26,7 @@ SUBDIRS=xot
 DATA=xot.dtd
 
 pwd=$(shell pwd)
-python=python$(PYTHONVER)
+python=python
 dir=xot
 
 all:
