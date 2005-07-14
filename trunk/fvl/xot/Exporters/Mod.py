@@ -31,11 +31,13 @@ Exporter for Modeling input. Options are:
 
 noHierarchy: Entities don't honour the 'inherits' attribute.
              This will be needed when exporting the old database scheme.
-database:    The name of the database. This will be used to name the
-             database in the database engine and also the model name,
-             unless modelName is given.
+database:    The name of the database.
 modelName:   The name of the model.
              The default is the name of the database.
+packageName: The name of the package.
+             The default is the name of the class.
+moduleName:  The name of the module.
+             The default is the name of the model.
 host:        The name of the host where the database engine runs.
              The default is 'localhost'.
 user:        The user name that will be used to connect to the database engine.
@@ -53,17 +55,18 @@ adaptorName: The name of the Modeling adaptor to be used.
 from Modeling.PyModel import *
 
 Entity.defaults['properties']= [
-  APrimaryKey ('id', isClassProperty=0, isRequired=1, doc='Primary key!')
+  APrimaryKey ('id', isClassProperty=1, isRequired=1, doc='Primary key!')
 ]
+%s
 
 _connDict= {
-    'database': '%s',
-    'host': '%s',
-    'user': '%s',
-    'password': '%s'
+    'database': %r,
+    'host': %r,
+    'user': %r,
+    'password': %r
 }
 
-model= Model ('%s', adaptorName='%s', connDict=_connDict)
+model= Model (%r, packageName=%r, adaptorName=%r, connDict=_connDict)
 model.version='0.1'
 
 """
@@ -98,12 +101,19 @@ model.version='0.1'
         database = opts['database']
         adaptor = opts['adaptorName']
         model = opts.get('modelName', self.__tableName__(database))
+        package = opts.get('packageName', database)
+        module = opts.get('moduleName', '')
         host = opts.get('host', 'localhost')
         user = opts.get('user', 'papo')
         passwd = opts.get('password', '')
         withoutHierarchy = opts.get('noHierarchy', False)
 
-        code= self.header % (xot.filename, database, host, user, passwd, model, adaptor)
+        if module:
+            module = "Entity.defaults['moduleName'] = %r" % module
+
+        code = self.header % (xot.filename, module,
+                              database, host, user, passwd,
+                              model, package, adaptor)
         self.extendTables (xot.tables)
         code+= "model.entities= [\n"+"\n".join (map (lambda t: self.table (t, withoutHierarchy),
                                                      xot.tables.values ()))+"]\n"
