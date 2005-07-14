@@ -105,8 +105,8 @@ model.version='0.1'
 
         code= self.header % (xot.filename, database, host, user, passwd, model, adaptor)
         self.extendTables (xot.tables)
-        code+= "model.entities= [\n"+"\n".join (map (lambda t: self.table (t, withoutHierarchy), xot.tables.values ()))+"]\n"
-        # code+= "model.associations= [\n"+"\n".join (map (self.assoc, xot.tables.values ()))+"]\n"
+        code+= "model.entities= [\n"+"\n".join (map (lambda t: self.table (t, withoutHierarchy),
+                                                     xot.tables.values ()))+"]\n"
         return code
 
     def extendTables (self, tables):

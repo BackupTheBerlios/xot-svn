@@ -88,17 +88,6 @@ class exporter(object):
                 # check for `class has that attr`?
                 others.append (child)
 
-            elif child.name=='attribute':
-                # gotta do this pass for the children classes too
-                kind.searchers[child.prop ('name')]= []
-                column= child.children
-                while column:
-                    if column.name=='finder':
-                        kind.searchers[child.prop ('name')].append \
-                                                  (column.prop ('attribute'))
-
-                    column= column.next
-
             child= child.next
 
         xml= libxml2.newDoc("1.0")
@@ -134,11 +123,29 @@ class exporter(object):
         return xml.serialize (encoding="utf-8", format=1)
 
     def makeTab (self, xmlObj, crud):
-        # kind_name = opts['class']
         kind_name= xmlObj.prop ('name')
         KindName= MakeFieldName (kind_name)
         kind = self.xot.tables[kind_name]
 
+        # process the xmlObj first
+        kind.ignore = []
+        child= xmlObj.children
+        while child is not None:
+            if child.name=='attribute':
+                kind.searchers[child.prop ('name')]= []
+                column= child.children
+                while column:
+                    if column.name=='finder':
+                        kind.searchers[child.prop ('name')].append \
+                                                  (column.prop ('attribute'))
+
+                    column= column.next
+
+            elif child.name=='ignore':
+                kind.ignore.append(child.prop('attribute'))
+                
+            child= child.next
+        
         editor= crud.newChild (None, 'Editor', None)
         editor.setProp ('label', "Edit")
         editor.setProp ('id', KindName+"Editor")
@@ -153,7 +160,7 @@ class exporter(object):
             editor.setProp ('cls', KindName)
 
         for field_name in kind.fields:
-            if field_name=='id':
+            if field_name=='id' or field_name in kind.ignore:
                 continue
             # fuck the way to do these things
             # this module is too literal
@@ -161,9 +168,27 @@ class exporter(object):
             label.setProp ('text', MakeFieldName (field_name))
             
             try:
-                # reference; put a search entry
                 search_field_name= kind.fields[field_name].reference.name
-                if search_field_name in [ other.prop ('name') for other in self.others ]:
+            except AttributeError:
+                # normal field
+                if kind.fields[field_name].type=="boolean":
+                    entry= libxml2.newNode ('Checkbox')
+                elif editor.name=='Grid':
+                    # this kind is edited through a Grid
+                    # the fields must be Columns
+                    entry= libxml2.newNode ('Column')
+                    FieldName= MakeFieldName (field_name)
+                    entry.setProp ('name', FieldName)
+                    # these will be gone when Columns learn how to handle attrs
+                    # entry.setProp ('read', KindName+'.get'+FieldName)
+                    # entry.setProp ('write', KindName+'.set'+FieldName)
+                    entry.setProp('attribute', fieldName)
+                    label = None
+                else:
+                    entry = libxml2.newNode('Entry')
+            else:
+                # reference; put a search entry
+                if search_field_name in [ other.prop('name') for other in self.others ]:
                     # skip those fields treated elsewhere
                     continue
 
@@ -174,22 +199,7 @@ class exporter(object):
                     column= entry.newChild (None, 'Column', None)
                     column.setProp ('name', i)
                     column.setProp ('read', SearchFieldName+'.get'+MakeFieldName (i))
-            except AttributeError:
-                # normal field
-                if kind.fields[field_name].type=="boolean":
-                    entry= libxml2.newNode ('Checkbox')
-                elif editor.name=='Grid':
-                    # this king is edited through a Grid
-                    # the fields must be Columns
-                    entry= libxml2.newNode ('Column')
-                    FieldName= MakeFieldName (field_name)
-                    entry.setProp ('name', FieldName)
-                    # these will be gone when Columns learn how to handle attrs
-                    entry.setProp ('read', KindName+'.get'+FieldName)
-                    entry.setProp ('write', KindName+'.set'+FieldName)
-                    label= None
-                else:
-                    entry= libxml2.newNode ('Entry')
+                
             entry.setProp ('attribute', makeFieldName (field_name))
     
             if label is not None:

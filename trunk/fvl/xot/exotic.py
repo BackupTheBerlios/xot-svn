@@ -106,7 +106,7 @@ def main():
         sys.exit(3)
 
     # Ok, we've actually got to do some work.
-    from xot import Xot
+    from fvl.xot import Xot
 
     file = args[0]
     fs = os.stat(file)
