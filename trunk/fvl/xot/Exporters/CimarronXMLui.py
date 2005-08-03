@@ -107,13 +107,12 @@ class exporter(object):
                 imp.setProp ('what', v)
                 imp.setProp ('id', v)
 
-        search= crud.newChild (None, 'Search', None)
+        search= crud.newChild (None, 'SearchEntry', None)
         search.setProp ('onAction', 'Crud.changeModel')
-        search.setProp ('searcher', KindName)
+        search.setProp ('cls', KindName)
         for i in finders:
             column= search.newChild (None, 'Column', None)
             column.setProp ('name', MakeFieldName(i))
-            # column.setProp ('read', KindName+'.get'+MakeFieldName (i))
             column.setProp('attribute', makeFieldName(i))
 
         # tabs
@@ -177,11 +176,9 @@ class exporter(object):
                     # this kind is edited through a Grid
                     # the fields must be Columns
                     entry= libxml2.newNode ('Column')
+                    fieldName= makeFieldName (field_name)
                     FieldName= MakeFieldName (field_name)
-                    entry.setProp ('name', FieldName)
-                    # these will be gone when Columns learn how to handle attrs
-                    # entry.setProp ('read', KindName+'.get'+FieldName)
-                    # entry.setProp ('write', KindName+'.set'+FieldName)
+                    entry.setProp('name', FieldName)
                     entry.setProp('attribute', fieldName)
                     label = None
                 else:
